@@ -1,0 +1,147 @@
+{% load customfilter %}
+<div class="container-fluid">
+    <form action=" " id="product-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ product.id }}">
+        <div class="form-group mb-3 ">
+            <label for="model" class="control-label">Model</label>
+            <select name="model" class="form-control rounded-0" id="model"  value="{{ product.model}}" required>
+                {% if not product.model or product.model == 'HP' %}
+                <option value="HP" selected>HP</option>
+                {% else %}
+                <option value="HP" >HP</option>
+                {% endif %}
+                {% if product.model == 'DELL' %}
+                <option value="DELL" selected>DELL</option>
+                {% else %}
+                <option value="DELL" >DELL</option>
+                {% endif %}
+                {% if product.model == 'LENOVO' %}
+                <option value="LENOVO" selected>LENOVO</option>
+                {% else %}
+                <option value="LENOVO" >LENOVO</option>
+                {% endif %}
+                {% if product.model == 'MACBOOK' %}
+                <option value="MACBOOK" selected>MACBOOK</option>
+                {% else %}
+                <option value="MACBOOK" >MACBOOK</option>
+                {% endif %}
+                {% if product.model == 'ASUS' %}
+                <option value="ASUS" selected>ASUS</option>
+                {% else %}
+                <option value="ASUS" >ASUS</option>
+                {% endif %}
+                {% if product.model == 'TOSHIBA' %}
+                <option value="TOSHIBA" selected>TOSHIBA</option>
+                {% else %}
+                <option value="TOSHIBA" >TOSHIBA</option>
+                {% endif %}
+                {% if product.model == 'ACER' %}
+                <option value="ACER" selected>ACER</option>
+                {% else %}
+                <option value="ACER" >ACER</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="serial" class="control-label">Serial No</label>
+            <input type="text" class="form-control rounded-0" id="serial" name="serial" value="{{ product.serial}}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="hd_size" class="control-label">HD Size</label>
+            <input type="text" class="form-control rounded-0" id="hd_size" name="hd_size" value="{{ product.hd_size}}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="ram" class="control-label">RAM</label>
+            <select name="ram" input type="text" class="form-control rounded-0" id="ram"  value="{{ product.ram}}" required>
+                {% if not product.status or product.status == '4GB' %}
+                <option value="4GB" selected>4GB</option>
+                {% else %}
+                <option value="4GB" >4GB</option>
+                {% endif %}
+                {% if product.status == '8GB' %}
+                <option value="8GB" selected>8GB</option>
+                {% else %}
+                <option value="8GB" >8GB</option>
+                {% endif %}
+                {% if product.status == '12GB' %}
+                <option value="12GB" >12GB</option>
+                {% else %}
+                <option value="12GB" >12GB</option>
+                {% endif %}
+                {% if product.status == '16GB' %}
+                <option value="16GB" selected>16GB</option>
+                {% else %}
+                <option value="16GB" >16GB</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="processor" class="control-label">Processor</label>
+            <input type="text" class="form-control rounded-0" id="processor" name="processor" value="{{ product.processor}}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="status" class="control-label">Status</label>
+            <select name="status" id="status" class="form-select rounded-0">
+                {% if not product.status or product.status == '1' %}
+                <option value="1" selected>Assigned</option>
+                {% else %}
+                <option value="1" >Assigned</option>
+                {% endif %}
+                {% if product.status == '2' %}
+                <option value="2" selected>Unassigned</option>
+                {% else %}
+                <option value="2" >Unassigned</option>
+                {% endif %}
+            </select>
+        </div>
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#product-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                url: "{% url 'save-product' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert("An error occured ", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg ")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.html(resp.msg)
+                    } else {
+                        el.text("An error occured ", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal ").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

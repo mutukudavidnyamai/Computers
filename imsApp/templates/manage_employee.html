@@ -1,0 +1,97 @@
+{% load customfilter %}
+<div class="container-fluid">
+    <form action=" " id="employee-form">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ employee.id }}">
+        <div class="form-group mb-3 ">
+            <label for="address" class="control-label">Email</label>
+            <input type="text" class="form-control rounded-0" id="address" name="address" value="{{ employee.address}}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="first_name" class="control-label">First Name</label>
+            <input type="text" class="form-control rounded-0" name="first_name" id="first_name" value="{{ employee.first_name}}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="sec_name" class="control-label">Sec Name</label>
+            <input type="text" class="form-control rounded-0" name="sec_name" id="sec_name" value="{{ employee.sec_name}}" required>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="department" class="control-label">Department</label>
+            <select name="department" input type="text" class="form-control rounded-0" id="department"  value="{{ employee.department}}" required>
+                {% if not employee.status or employee.status == 'FINANCE' %}
+                <option value="FINANCE" selected>FINANCE</option>
+                {% else %}
+                <option value="FINANCE" >FINANCE</option>
+                {% endif %}
+                {% if employee.status == 'SHIPPING' %}
+                <option value="SHIPPING" selected>SHIPPING</option>
+                {% else %}
+                <option value="SHIPPING" >SHIPPING</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group mb-3 ">
+            <label for="company" class="control-label">Company</label>
+            <select name="company" input type="text" class="form-control rounded-0" id="company"  value="{{ employee.company}}" required>
+                {% if not employee.status or employee.status == 'c_dormans' %}
+                <option value="c_dormans" selected>C.Dormans</option>
+                {% else %}
+                <option value="c_dormans" >C.Dormans</option>
+                {% endif %}
+                {% if employee.status == 'dormans_coffee' %}
+                <option value="dormans_coffee" selected>Dormans Coffee</option>
+                {% else %}
+                <option value="dormans_coffee" >Dormans Coffee</option>
+                {% endif %}
+            </select>
+
+    </form>
+</div>
+<script>
+    $(function() {
+        $('#employee-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                url: "{% url 'save-employee' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert("An error occured ", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg ")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.html(resp.msg)
+                    } else {
+                        el.text("An error occured ", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal ").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>
